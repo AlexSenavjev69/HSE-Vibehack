@@ -1,0 +1,8 @@
+{
+  "name": "dobrye-dela-profile-api",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "main.js",
+  "engines": { "node": ">=22" }
+}
