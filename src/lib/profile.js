@@ -3,8 +3,8 @@ import { appwriteConfig, functions } from './appwrite'
 
 export { isProfileReady, limits, validateProfile } from '../../server/profile-api/domain.js'
 
-export async function requestProfile(action, identity, profile, signal) {
-  const body = { action, ...identity, ...(profile ? { profile } : {}) }
+export async function callApi(action, identity, payload = {}, signal) {
+  const body = { ...payload, action, ...identity }
   let result
   let status
   if (import.meta.env.DEV && !appwriteConfig.profileFunctionId) {
@@ -31,6 +31,11 @@ export async function requestProfile(action, identity, profile, signal) {
     error.fields = result.fields
     throw error
   }
+  return result
+}
+
+export async function requestProfile(action, identity, profile, signal) {
+  const result = await callApi(action, identity, profile ? { profile } : {}, signal)
   if (!result.profile?.$id || !result.profile?.tgId) throw new Error('Сервер вернул неполный профиль. Попробуйте ещё раз.')
   return result.profile
 }

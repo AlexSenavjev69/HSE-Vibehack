@@ -206,3 +206,50 @@ test('repository sends scoped queries, blank user fields, relationship IDs and p
   assert.ok(calls[5].url.pathname.endsWith('/rows/tg_123'))
   assert.equal(calls[5].headers['X-Appwrite-Key'], 'test-key')
 })
+
+test('Cities.cityName schema supports lookup, creation, saving and reopening the profile', async () => {
+  const users = new Map()
+  const cities = new Map([['existing-city', { $id: 'existing-city', cityName: 'москва' }]])
+  const repository = createRepository({ endpoint: 'https://example.invalid/v1', projectId: 'project', databaseId: 'database', usersTableId: 'users', citiesTableId: 'cities', citiesNameColumn: 'cityName', apiKey: 'test-key' }, async (url, options) => {
+    const isCity = url.pathname.includes('/tables/cities/')
+    const rows = isCity ? cities : users
+    const json = (data, status = 200) => new Response(JSON.stringify(data), { status })
+    if (options.method === 'GET') {
+      const filter = url.searchParams.getAll('queries[]').map(JSON.parse).find((query) => query.method === 'equal')
+      if (isCity && filter?.attribute !== 'cityName') return json({ type: 'general_query_invalid', message: 'Invalid query: Attribute not found in schema: name' }, 400)
+      const matches = [...rows.values()].filter((row) => row[filter.attribute] === filter.values[0])
+      return json({ rows: matches.map((row) => isCity ? row : { ...row, cities: cities.get(row.cities) || null }) })
+    }
+    const body = JSON.parse(options.body)
+    if (options.method === 'POST') {
+      if (isCity) {
+        assert.equal(typeof body.data.cityName, 'string')
+        assert.equal(body.data.name, undefined)
+      }
+      const row = { $id: body.rowId, ...body.data }
+      rows.set(row.$id, row)
+      return json(row, 201)
+    }
+    const id = url.pathname.split('/').at(-1)
+    rows.set(id, { ...rows.get(id), ...body.data })
+    return json(rows.get(id))
+  })
+  assert.equal((await repository.findCity('москва')).$id, 'existing-city')
+  const saved = await handleProfileRequest(body('save', validProfile), config, repository)
+  assert.equal(saved.status, 200)
+  assert.equal(saved.body.profile.city, 'нижнийновгород')
+  assert.ok(isProfileReady(saved.body.profile))
+  assert.equal(cities.size, 2)
+  assert.ok([...cities.values()].some((city) => city.cityName === 'нижнийновгород'))
+  const reopened = await handleProfileRequest(body('bootstrap'), config, repository)
+  assert.equal(reopened.body.profile.city, 'нижнийновгород')
+  assert.ok(isProfileReady(reopened.body.profile))
+  await handleProfileRequest(body('save', validProfile), config, repository)
+  assert.equal(cities.size, 2)
+})
+
+test('query errors identify the failing table and missing column', async () => {
+  const repository = createRepository({ endpoint: 'https://example.invalid/v1', projectId: 'project', databaseId: 'database', usersTableId: 'users', citiesTableId: 'cities', apiKey: 'test-key' }, async () => new Response(JSON.stringify({ type: 'general_query_invalid', message: 'Invalid query: Attribute not found in schema: name' }), { status: 400 }))
+  await assert.rejects(() => repository.findCity('москва'), { status: 502, message: 'Ошибка запроса к Cities: Invalid query: Attribute not found in schema: name' })
+  assert.equal(readConfig({ APPWRITE_CITIES_NAME_COLUMN: 'cityName' }).citiesNameColumn, 'cityName')
+})

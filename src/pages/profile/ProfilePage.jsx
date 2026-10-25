@@ -1,12 +1,12 @@
 import { useApp } from '../../context/useApp'
-import { categories } from '../../data/demo'
+import { categories } from '../../data/catalog'
 import Icon from '../../components/Icon'
 import './ProfilePage.scss'
 
 export default function ProfilePage() {
   const { profile, tasks, responses } = useApp()
   const myTasks = tasks.filter((task) => task.owner)
-  const active = myTasks.filter((task) => task.status === 'active').length
+  const active = myTasks.filter((task) => task.status === 'created').length
   return <div className="profile-page narrow-page">
     <div className="page-heading"><span className="eyebrow">Ваш маленький мир добрых дел</span><h1>Мой профиль</h1></div>
     <section className="profile-card">

@@ -15,3 +15,7 @@
 .response-status { display: flex; align-items: center; gap: 7px; margin-top: 18px; border-radius: 10px; padding: 10px 12px; background: #fbf4e6; color: #916629; font-size: 12px; &.is-accepted { background: var(--mint); color: var(--green); } }
 @media (max-width: 600px) { .request-description { font-size: 14px; } .request-meta { font-size: 13px; } .author strong { font-size: 13px; } .respond-button { font-size: 13px; } }
 @media (max-width: 380px) { .request-card { padding: 17px; } .request-category { font-size: 11px; } .author small span { display: none; } }
+
+.request-badges { display: flex; flex-wrap: wrap; gap: 6px; &:not(:empty) { margin-top: 12px; } }
+.request-reward { display: flex; gap: 8px; align-items: flex-start; background: var(--mint); padding: 12px; border-radius: 12px; margin-bottom: 17px; color: var(--green-dark); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; > .icon { margin-top: 3px; } strong { display: block; font-size: 11px; margin-bottom: 3px; } }
+.request-card h3, .author strong, .request-meta { overflow-wrap: anywhere; }

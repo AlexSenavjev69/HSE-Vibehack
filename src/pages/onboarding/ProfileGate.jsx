@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Icon from '../../components/Icon'
 import { getTelegramIdentity, useTestTelegramId } from '../../lib/telegram'
-import { isProfileReady, requestProfile } from '../../lib/profile'
+import { callApi, isProfileReady, requestProfile } from '../../lib/profile'
 import ProfileForm from '../profile/ProfileForm'
 import './OnboardingPage.scss'
 
 export default function ProfileGate({ children }) {
   const [attempt, setAttempt] = useState(0)
   const [session, setSession] = useState({ status: 'loading' })
+  const api = useCallback((action, payload, signal) => callApi(action, session.identity, payload, signal), [session.identity])
   useEffect(() => {
     const controller = new AbortController()
     let active = true
@@ -29,7 +30,7 @@ export default function ProfileGate({ children }) {
     setSession((current) => ({ ...current, user }))
     return user
   }
-  if (session.status === 'loaded' && isProfileReady(session.user)) return children({ user: session.user, saveProfile })
+  if (session.status === 'loaded' && isProfileReady(session.user)) return children({ user: session.user, saveProfile, api })
   return <div className="onboarding-shell">
     <header className="onboarding-brand"><span className="brand-icon"><Icon name="heart" size={24} /></span><span>добрые дела<span className="brand-dot">.</span></span></header>
     <main className="onboarding-content">

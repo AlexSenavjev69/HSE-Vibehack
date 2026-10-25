@@ -19,7 +19,7 @@ function readRoute() {
 
 function AppLayout() {
   const [route, setRoute] = useState(readRoute)
-  const { profile, notice, setNotice, storageError } = useApp()
+  const { profile, notice, setNotice, tasksLoading } = useApp()
 
   useEffect(() => {
     const onHashChange = () => {
@@ -44,7 +44,7 @@ function AppLayout() {
   useEffect(() => {
     const title = document.querySelector('main h1')?.innerText.replace(/\s+/g, ' ')
     document.title = title ? `${title} — Добрые дела` : 'Добрые дела'
-  }, [route])
+  }, [route, tasksLoading])
 
   return (
     <div className="app-shell">
@@ -55,18 +55,17 @@ function AppLayout() {
         <a className="header-avatar avatar avatar-peach" href="#/profile" aria-label="Открыть профиль">{profile.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}</a>
       </div></header>
       <main id="main-content" className="main-content" tabIndex={-1}>{page}</main>
-      <footer className="site-footer"><Icon name="heart" size={13} /> Маленькие дела. Большое значение.<span>Профиль сохранён · заявки пока демонстрационные</span></footer>
+      <footer className="site-footer"><Icon name="heart" size={13} /> Маленькие дела. Большое значение.</footer>
       <nav className="bottom-nav" aria-label="Основная навигация">
         <a href="#/" className={route === '/' ? 'is-active' : ''} aria-current={route === '/' ? 'page' : undefined}><Icon name="home" /><span>Главная</span></a>
         <a href="#/create" className={`nav-create ${route === '/create' ? 'is-active' : ''}`} aria-current={route === '/create' ? 'page' : undefined}><span className="nav-create-icon"><Icon name="plus" /></span><span>Создать заявку</span></a>
         <a href="#/profile" className={profileActive ? 'is-active' : ''} aria-current={profileActive ? 'page' : undefined}><Icon name="user" /><span>Профиль</span></a>
       </nav>
       <div className="toast-region" aria-live="polite" aria-atomic="true">{notice && <div className="toast"><Icon name="check-circle" size={21} /><span>{notice}</span><button onClick={() => setNotice('')} aria-label="Закрыть уведомление"><Icon name="close" size={18} /></button></div>}</div>
-      {storageError && <div className="storage-notice" role="alert">Браузер не разрешил сохранить данные. Изменения доступны до обновления страницы.</div>}
     </div>
   )
 }
 
 export default function App() {
-  return <ProfileGate>{({ user, saveProfile }) => <AppProvider key={user.tgId} user={user} saveUser={saveProfile}><AppLayout /></AppProvider>}</ProfileGate>
+  return <ProfileGate>{({ user, saveProfile, api }) => <AppProvider key={user.tgId} user={user} saveUser={saveProfile} api={api}><AppLayout /></AppProvider>}</ProfileGate>
 }

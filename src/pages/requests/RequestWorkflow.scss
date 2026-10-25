@@ -1,0 +1,27 @@
+.request-workflow {
+  margin-top: 18px;
+  h2 { margin-top: 9px; font-size: 21px; overflow-wrap: anywhere; }
+  > p { color: var(--muted); line-height: 1.8; font-size: 14px; margin: 14px 0 20px; }
+  > .field-error { color: #a34236; margin-bottom: 0; }
+}
+.review-form {
+  margin-top: 22px;
+  h3 { font-size: 20px; }
+  > p { color: var(--muted); font-size: 13px; line-height: 1.7; }
+  > .field-error { color: #a34236; }
+  .review-caption { font-size: 12px; }
+}
+.review-rating { border: 0; padding: 0; margin: 0; min-width: 0; legend { font-size: 14px; font-weight: 600; margin-bottom: 10px; } .field-error { display: block; margin-top: 8px; } }
+.review-stars {
+  display: flex;
+  gap: 6px;
+  label { position: relative; display: grid; place-items: center; width: 44px; height: 48px; cursor: pointer; color: #aab8ae; border-radius: 9px; }
+  input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .icon { pointer-events: none; }
+  .is-filled { color: #a46f20; .icon { fill: #f3d18a; } }
+  label:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+  label:has(input:disabled) { cursor: wait; opacity: .6; }
+}
+.rating-caption { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.workflow-finished { display: flex; gap: 10px; align-items: center; margin-top: 16px; color: var(--green); p { font-size: 14px; line-height: 1.7; } .icon { flex-shrink: 0; } }
+@media (max-width: 600px) { .request-workflow .button { width: 100%; } }

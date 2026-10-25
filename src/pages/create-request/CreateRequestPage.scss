@@ -15,3 +15,5 @@
 .toggle-track { margin-left: auto; width: 42px; height: 25px; border-radius: 15px; background: #dce4de; flex-shrink: 0; padding: 3px; transition: background .2s; &::after { content: ''; display: block; width: 19px; height: 19px; border-radius: 50%; background: #fff; transition: transform .2s; } }
 .create-hint { font-size: 11px; text-align: center; color: var(--muted); line-height: 1.6; margin-top: -10px; }
 @media (max-width: 600px) { .create-form { padding: 22px 17px; } .category-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .category-option { padding: 13px; font-size: 11px; flex-direction: row; align-items: center; gap: 8px; .category-icon { width: 32px; height: 34px; } .category-check { top: 4px; right: 4px; width: 10px; } } }
+
+.request-form-fields { border: 0; margin: 0; padding: 0; min-width: 0; &:disabled { opacity: .65; } }

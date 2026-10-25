@@ -1,27 +1,33 @@
 import { useState } from 'react'
 import { useApp } from '../../context/useApp'
-import { plural } from '../../data/demo'
+import { plural } from '../../data/catalog'
 import Icon from '../../components/Icon'
 import RequestCard from '../../components/RequestCard'
+import RequestsStatus from '../../components/RequestsStatus'
+import ResponsesStatus from '../../components/ResponsesStatus'
 import './ActivityPage.scss'
 
 export default function ActivityPage({ kind }) {
-  const { tasks, responses, cancelResponse } = useApp()
+  const { tasks, tasksLoading, tasksError, responses, responsesLoading, responsesError, reloadResponses, reloadRequests } = useApp()
   const [filter, setFilter] = useState('all')
   const isRequests = kind === 'requests'
   const mine = tasks.filter((task) => task.owner)
-  const responseItems = responses.map((response) => ({ response, task: tasks.find((task) => task.id === response.taskId) })).filter((item) => item.task)
+  const responseItems = responses.map((response) => ({ response, task: tasks.find((task) => task.id === response.taskId) || response.request }))
   const items = isRequests ? mine.map((task) => ({ task })) : responseItems
-  const filters = isRequests ? [{ id: 'all', label: 'Все' }, { id: 'active', label: 'Активные' }, { id: 'completed', label: 'Завершённые' }] : [{ id: 'all', label: 'Все' }, { id: 'waiting', label: 'Ожидают ответа' }, { id: 'accepted', label: 'Меня выбрали' }]
-  const matches = (item, value) => value === 'all' || (isRequests ? item.task.status : item.response.status) === value
+  const filters = isRequests ? [{ id: 'all', label: 'Все' }, { id: 'created', label: 'Ищут помощника' }, { id: 'in_progress', label: 'В работе' }, { id: 'completed', label: 'Завершённые' }, { id: 'archived', label: 'В архиве' }] : [{ id: 'all', label: 'Все отклики' }]
+  const matches = (item, value) => value === 'all' || item.task?.status === value
   const shown = items.filter((item) => matches(item, filter))
+  const loading = isRequests ? tasksLoading : responsesLoading
+  const error = isRequests ? tasksError : responsesError
 
   return <div className="activity-page">
     <a className="back-link" href="#/profile"><Icon name="back" size={17} />В профиль</a>
     <div className="activity-heading"><div className="page-heading"><span className="eyebrow">Добрые дела продолжаются</span><h1>{isRequests ? 'Мои заявки' : 'Мои отклики'}</h1><p>{isRequests ? 'Ваши просьбы о помощи и их маленькие истории.' : 'Все дела, в которых вы готовы быть рядом.'}</p></div>{isRequests && <a href="#/create" className="button button-primary activity-create"><Icon name="plus" size={18} /><span>Новая заявка</span></a>}</div>
     <nav className="activity-tabs" aria-label="Моя активность"><a href="#/profile/requests" aria-current={isRequests ? 'page' : undefined}><Icon name="clipboard" size={18} />Мои заявки<span>{mine.length}</span></a><a href="#/profile/responses" aria-current={!isRequests ? 'page' : undefined}><Icon name="message" size={18} />Мои отклики<span>{responses.length}</span></a></nav>
+    {isRequests ? <RequestsStatus /> : <ResponsesStatus />}
+    <button className="button button-secondary" disabled={loading} onClick={() => isRequests ? reloadRequests() : reloadResponses()}>Обновить список</button>
     <div className="activity-filters" role="group" aria-label="Статус">{filters.map((item) => <button key={item.id} className="chip" aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}>{item.label}<span>{items.filter((entry) => matches(entry, item.id)).length}</span></button>)}</div>
     <p className="activity-count" aria-live="polite">{isRequests ? plural(shown.length) : plural(shown.length, ['отклик', 'отклика', 'откликов'])}</p>
-    <div className="activity-grid">{shown.map(({ task, response }) => <RequestCard task={task} response={response} key={task.id}>{response && <div className="response-message"><span>Ваше сообщение</span><p>{response.message}</p><button onClick={() => cancelResponse(task.id)}>Отозвать отклик</button></div>}</RequestCard>)}{!shown.length && <div className="empty-state"><Icon name={isRequests ? 'clipboard' : 'message'} size={34} /><h2>{filter !== 'all' ? 'Здесь пока пусто' : isRequests ? 'Всё начинается с просьбы' : 'Ваше первое доброе дело — впереди'}</h2><p>{filter !== 'all' ? 'Заявок с таким статусом пока нет. Посмотрите другие вкладки.' : isRequests ? 'Создайте заявку, и кто-то рядом сможет предложить помощь.' : 'Выберите задачу на главной и предложите свою помощь.'}</p>{filter !== 'all' ? <button className="button button-secondary" onClick={() => setFilter('all')}>Показать все</button> : <a href={isRequests ? '#/create' : '#/'} className="button button-primary">{isRequests ? 'Создать заявку' : 'Найти доброе дело'}<Icon name="arrow" size={17} /></a>}</div>}</div>
+    {!loading && !error && <div className="activity-grid">{shown.map(({ task, response }) => task ? <RequestCard task={task} response={response} key={response?.id || task.id} /> : <article className="panel" key={response.id}><h3>Заявка удалена</h3><p>Ваш отклик сохранён, но связанная заявка больше недоступна.</p></article>)}{!shown.length && <div className="empty-state"><Icon name={isRequests ? 'clipboard' : 'message'} size={34} /><h2>{filter !== 'all' ? 'Здесь пока пусто' : isRequests ? 'Всё начинается с просьбы' : 'Ваше первое доброе дело — впереди'}</h2><p>{filter !== 'all' ? 'Заявок с таким статусом пока нет. Посмотрите другие вкладки.' : isRequests ? 'Создайте заявку, и кто-то рядом сможет предложить помощь.' : 'Выберите задачу на главной и предложите свою помощь.'}</p>{filter !== 'all' ? <button className="button button-secondary" onClick={() => setFilter('all')}>Показать все</button> : <a href={isRequests ? '#/create' : '#/'} className="button button-primary">{isRequests ? 'Создать заявку' : 'Найти доброе дело'}<Icon name="arrow" size={17} /></a>}</div>}</div>}
   </div>
 }

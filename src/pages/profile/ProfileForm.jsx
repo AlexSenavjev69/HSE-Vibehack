@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import Icon from '../../components/Icon'
-import { categories } from '../../data/demo'
+import { categories } from '../../data/catalog'
 import { limits, validateProfile } from '../../lib/profile'
 import './ProfileForm.scss'
 
